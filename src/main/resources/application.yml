@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: newPaymentWithMsg-ms
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/database_spring?currentSchema=payment
+    username: postgres
+    password: 12345678
+  flyway:
+    defaultSchema: payment
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest

@@ -12,25 +12,6 @@ services:
       - "5432:5432"
     networks:
       - luis-network
-  new_payment:
-    image: luisstorm/new_payment
-    restart: always
-    container_name: new_payment
-    build: .
-    working_dir: /.
-    environment:
-      SPRING.DATASOURCE.URL: jdbc:postgresql://db:5432/database_spring?currentSchema=payment
-      SPRING.DATASOURCE.USERNAME: postgres
-      SPRING.DATASOURCE.PASSWORD: 12345678
-    ports:
-      - "8080:8080"
-    command: mvn spring-boot:run
-    depends_on:
-      - db
-    volumes:
-      - "./localenv/db/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql"
-    networks:
-      - luis-network
 volumes:
   localstack-vol:
 

@@ -6,6 +6,8 @@ import com.microservices.enums.Status;
 import com.microservices.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final ModelMapper modelMapper;
+    private final RabbitTemplate rabbitTemplate;
 
     public Page<PaymentDTO> getAllPayment(Pageable page){
         return paymentRepository
@@ -27,21 +30,22 @@ public class PaymentService {
 
     public PaymentDTO findById(Integer id){
         Payment payment= paymentRepository.findById(id)
-            .orElseThrow(()-> new EntityNotFoundException());
+            .orElseThrow(() -> new EntityNotFoundException());
 
         return modelMapper.map(payment, PaymentDTO.class);
     }
 
     public PaymentDTO createPayment(PaymentDTO paymentDTO){
-        Payment payment = modelMapper.map(paymentDTO, Payment.class);
+        var payment = modelMapper.map(paymentDTO, Payment.class);
         payment.setStatus(Status.CREATED);
         paymentRepository.save(payment);
 
+        rabbitTemplate.convertAndSend("payments.ex", "", payment);
         return modelMapper.map(payment, PaymentDTO.class);
     }
 
     public PaymentDTO updatePayment(Integer id, PaymentDTO paymentDTO){
-        Payment payment = modelMapper.map(paymentDTO, Payment.class);
+        var payment = modelMapper.map(paymentDTO, Payment.class);
         payment.setId(id);
         payment = paymentRepository.save(payment);
         return modelMapper.map(payment, PaymentDTO.class);
@@ -52,7 +56,7 @@ public class PaymentService {
     }
 
     public void confirmStatus(Integer id) {
-        Payment payment = paymentRepository.findById(id)
+        var payment = paymentRepository.findById(id)
                 .orElseThrow(() ->new EntityNotFoundException());
 
         payment.setStatus(Status.CONFIRMED);
@@ -60,7 +64,7 @@ public class PaymentService {
     }
 
     public void confirmStatus(Integer id, Status status) {
-        Payment payment = paymentRepository.findById(id)
+        var payment = paymentRepository.findById(id)
                 .orElseThrow(() ->new EntityNotFoundException());
 
         payment.setStatus(status);
